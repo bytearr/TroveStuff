@@ -88,7 +88,21 @@ WaitStatus("Stopped.")
 FileGetSize, size, %recoveredLog%
 if (size > 0)
     Fail("Recovery sent attack input to replacement client")
-FileAppend, Eight-client F8 cleanup and fake-launcher crash recovery passed.`n, *
+; Stopping during the recovery delay must cancel the pending launcher click.
+ControlClick, Refresh clients, %window%,,,, NA
+WaitStatus("1 client(s) available")
+ControlClick, Start monitoring, %window%,,,, NA
+WaitStatus("Monitoring / single client / Glyph")
+FileDelete, %marker%
+Process, Close, %replacement%
+WaitStatus("Client disconnected.")
+ControlClick, Stop / F8, %window%,,,, NA
+WaitStatus("Stopped.")
+Sleep, 3500
+if (FileExist(marker))
+    Fail("Launcher was clicked after cancelling recovery")
+WaitStatus("Stopped.")
+FileAppend, Eight-client F8 cleanup, crash recovery and cancellation passed.`n, *
 ExitApp, 0
 WaitStatus(expected, timeout := 5000) {
     global window

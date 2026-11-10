@@ -9,10 +9,10 @@ OnMessage(0x201, "LaunchClient")
 return
 LaunchClient() {
     global logPath, marker, launched
+    FileAppend, Launcher clicked.`n, %marker%
     if (launched)
         return
     launched := true
-    FileAppend, Launcher clicked.`n, %marker%
     Run, "%A_ScriptDir%\Trove.exe" /ErrorStdOut "%A_ScriptDir%\fake-client.ahk" "%logPath%"
 }
 GuiClose:

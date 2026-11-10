@@ -86,7 +86,10 @@ GitHub Actions runs migration tests on Linux and Windows, plus AutoHotkey v1 pro
 and dashboard integration tests on Windows. The latter uses isolated fake
 `Trove.exe` windows to verify all four classes with/without loot on two clients,
 Anti-AFK, stop/disconnect/close cleanup, and ambiguous recovery without connecting to the game;
-it uploads a Windows screenshot for UI inspection.
+it uploads a Windows screenshot for UI inspection. Additional tests use physical
+mouse clicks on dropdowns, checkboxes and buttons, verify F8 cleanup across eight
+clients, and simulate a crash/restart/cancellation using a fake Glyph launcher.
+AntiCrash mode is checked to send no game key events.
 
 Before release, also check with real Trove on Windows:
 
