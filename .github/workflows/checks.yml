@@ -32,5 +32,5 @@ jobs:
           name: dashboard-windows
           path: |
             dashboard-windows.png
-            tests/keys.log
+            tests/*.log
           if-no-files-found: ignore

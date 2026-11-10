@@ -9,6 +9,7 @@ root := A_ScriptDir "\.."
 app := root "\ShipDestroyer1.1\ShipDestroyer.ahk"
 logPath := A_ScriptDir "\keys.log"
 FileDelete, %logPath%
+FileDelete, %A_ScriptDir%\test-results.log
 FileCopy, %A_AhkPath%, %A_ScriptDir%\Trove.exe, 1
 Run, "%A_ScriptDir%\Trove.exe" /ErrorStdOut "%A_ScriptDir%\fake-client.ahk" "%logPath%",,, fakePID
 WinWait, Trove fixture,, 10
@@ -125,6 +126,7 @@ AssertText(expected) {
 }
 Fail(message) {
     FileAppend, %message%`n, **
+    FileAppend, %message%`n, %A_ScriptDir%\test-results.log
     ExitApp, 1
 }
 Cleanup(reason, code) {

@@ -5,11 +5,11 @@ New-Item -ItemType Directory -Force $runtime | Out-Null
 Invoke-WebRequest 'https://github.com/AutoHotkey/AutoHotkey/releases/download/v1.1.37.02/AutoHotkey_1.1.37.02.zip' -OutFile "$runtime/runtime.zip"
 Expand-Archive "$runtime/runtime.zip" $runtime -Force
 $ahk = Join-Path $runtime 'AutoHotkeyU64.exe'
-$profiles = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/profile_test.ahk`"") -PassThru -Wait
+$profiles = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/profile_test.ahk`"") -NoNewWindow -PassThru -Wait
 if ($profiles.ExitCode -ne 0) { throw 'Profile tests failed' }
 $ready = Join-Path $PSScriptRoot 'dashboard-ready.txt'
 Remove-Item $ready -ErrorAction SilentlyContinue
-$process = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/dashboard_smoke.ahk`"") -PassThru
+$process = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/dashboard_smoke.ahk`"") -RedirectStandardOutput "$PSScriptRoot/stdout.log" -RedirectStandardError "$PSScriptRoot/stderr.log" -PassThru
 try {
     $deadline = (Get-Date).AddSeconds(60)
     while (!(Test-Path $ready) -and !$process.HasExited -and (Get-Date) -lt $deadline) {
@@ -29,6 +29,7 @@ try {
     if (!$process.WaitForExit(10000)) { throw 'Dashboard smoke test timed out' }
     if ($process.ExitCode -ne 0) { throw 'Dashboard smoke tests failed' }
 } finally {
+    Get-Content "$PSScriptRoot/stdout.log", "$PSScriptRoot/stderr.log", "$PSScriptRoot/test-results.log" -ErrorAction SilentlyContinue
     if (!$process.HasExited) { $process.Kill() }
     Get-Process Trove -ErrorAction SilentlyContinue | Stop-Process -Force
 }

@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
 tests/Trove.exe
-tests/keys*.log
+tests/*.log
 tests/dashboard-ready.txt
 dashboard-windows.png
