@@ -133,6 +133,11 @@ Control, Uncheck,, Anti-AFK movement, Ship Destroyer
 Control, ChooseString, Boomeranger, ComboBox2, Ship Destroyer
 ; Return to the empty state for the screenshot captured by PowerShell.
 ControlClick, Refresh clients, Ship Destroyer,,,, NA
+for _, caption in ["Refresh clients", "Start session", "Stop / F8"] {
+    ControlGet, controlHwnd, Hwnd,, %caption%, Ship Destroyer
+    style := DllCall("GetWindowLong", "Ptr", controlHwnd, "Int", -16, "UInt")
+    FileAppend, %caption% style: %style%`n, *
+}
 FileAppend, Dashboard smoke tests passed.`n, *
 ; Tell the parent where the window is, then allow it to capture the real UI.
 FileAppend, %appPID%, %A_ScriptDir%\dashboard-ready.txt

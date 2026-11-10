@@ -21,7 +21,7 @@ nextRecovery := 0
 attempts := 0
 OnExit("Cleanup")
 OnMessage(0x2B, "DrawButton")
-OnMessage(0x7C, "KeepButtonStyle")
+
 Gui, +HwndMainWindow +MinimizeBox -MaximizeBox
 Gui, Color, 10141D, 1B2332
 Gui, Margin, 0, 0
@@ -154,6 +154,7 @@ return
 
 Tick:
 Critical
+EnsureButtonStyles()
 if (!running)
     return
 for index, client in targets {
@@ -396,16 +397,6 @@ ColorControl(dc, hwnd) {
     return entry.brush
 }
 
-; The dialog manager changes default-button styles when keyboard focus moves.
-; Preserve owner-draw while leaving all other style flags intact.
-KeepButtonStyle(which, styles, message, hwnd) {
-    global buttons
-    if ((which = -16 || which = 0xFFFFFFF0) && buttons.HasKey(hwnd)) {
-        style := NumGet(styles + 0, 4, "UInt")
-        NumPut((style & ~15) | 11, styles + 0, 4, "UInt")
-    }
-}
-
 ReleaseKeys() {
     delay := A_KeyDelay
     duration := A_KeyDuration
@@ -413,4 +404,17 @@ ReleaseKeys() {
     SetKeyDelay, -1, -1
     SendTargets("{m up}{o up}{e up}{1 up}{2 up}{z up}{Space up}{Esc up}")
     SetKeyDelay, %delay%, %duration%
+}
+
+; Native dialogs can reset the default button type when focus changes.
+; Repair only changed styles, then let Windows repaint after this timer returns.
+EnsureButtonStyles() {
+    global buttons
+    for hwnd, button in buttons {
+        style := DllCall("GetWindowLong", "Ptr", hwnd, "Int", -16, "UInt")
+        if ((style & 15) != 11) {
+            DllCall("SetWindowLong", "Ptr", hwnd, "Int", -16, "UInt", (style & ~15) | 11)
+            DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", true)
+        }
+    }
 }
