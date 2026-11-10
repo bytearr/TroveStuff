@@ -129,6 +129,10 @@ if (!targets.Length()) {
     SetStatus("No connected client selected. Refresh clients first.")
     return
 }
+if (RecoveryEnabled && FindClients().Length() != 1) {
+    SetStatus("Recovery requires exactly one open Trove client.")
+    return
+}
 profile := BuildProfile(ClassChoice, Loot)
 idleProfile := BuildIdleProfile()
 step := 1

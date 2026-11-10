@@ -16,6 +16,8 @@ for _, name in ["Boomeranger", "Dracolyte", "Ice Sage", "Lunar Lancer"] {
                 position += StrLen(match)
             }
         }
+        if (name = "Dracolyte" && !held.HasKey("m"))
+            Fail("Dracolyte must use primary attack")
         for key, down in held {
             if (down)
                 Fail("Unreleased key: " name " / " key)

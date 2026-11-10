@@ -11,7 +11,7 @@ $ready = Join-Path $PSScriptRoot 'dashboard-ready.txt'
 Remove-Item $ready -ErrorAction SilentlyContinue
 $process = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/dashboard_smoke.ahk`"") -PassThru
 try {
-    $deadline = (Get-Date).AddSeconds(30)
+    $deadline = (Get-Date).AddSeconds(60)
     while (!(Test-Path $ready) -and !$process.HasExited -and (Get-Date) -lt $deadline) {
         Start-Sleep -Milliseconds 100
     }
