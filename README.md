@@ -4,6 +4,8 @@ Tools for Trove by Mars, Vash / bytearr, and Yumo. Free to use with attribution.
 
 ## Ship Destroyer
 
+![Ship Destroyer dashboard on Windows](docs/dashboard-windows.png)
+
 A single session dashboard for one client or up to eight clients: four class
 rotations, optional loot, Anti-AFK movement, and opt-in single-client recovery.
 
@@ -78,8 +80,9 @@ python -m py_compile "TroveModMigration Tool.py"
 ```
 
 GitHub Actions runs migration tests on Linux and Windows, plus AutoHotkey v1 profile
-and dashboard integration tests on Windows. The latter uses an isolated fake
-`Trove.exe` window to verify input and key release without connecting to the game;
+and dashboard integration tests on Windows. The latter uses isolated fake
+`Trove.exe` windows to verify all four classes with/without loot on two clients,
+Anti-AFK, stop/disconnect/close cleanup, and ambiguous recovery without connecting to the game;
 it uploads a Windows screenshot for UI inspection.
 
 Before release, also check with real Trove on Windows:
