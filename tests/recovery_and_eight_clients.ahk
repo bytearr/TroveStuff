@@ -107,7 +107,7 @@ Sleep, 3500
 if (FileExist(marker))
     Fail("Launcher was clicked after cancelling recovery")
 WaitStatus("Stopped.")
-FileAppend, Eight-client F8 cleanup, crash recovery and cancellation passed.`n, *
+FileAppend, Eight-client F8 cleanup and crash recovery/cancellation passed.`n, *
 ExitApp, 0
 WaitStatus(expected, timeout := 5000) {
     global window
