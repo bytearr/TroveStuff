@@ -23,20 +23,19 @@ nextRecovery := 0
 attempts := 0
 OnExit("Cleanup")
 OnMessage(0x2B, "DrawButton")
+OnMessage(0x14, "DrawBackdrop")
 
 Gui, +HwndMainWindow +MinimizeBox -MaximizeBox
 Gui, Color, 10141D, 1B2332
 Gui, Margin, 0, 0
 Gui, Font, s10 cE7EDF7, Segoe UI
 ; Sidebar
-Gui, Add, Progress, x0 y0 w190 h646 hwndSidebar Disabled Background151B27 c151B27, 100
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x24 y30 w145 h20 BackgroundTrans, TROVE / TOOLKIT
 Gui, Font, s19 Bold cF3F6FC, Segoe UI
 Gui, Add, Text, x24 y65 w150 h64 vBrand BackgroundTrans, Ship`nDestroyer
 Gui, Font, s10 Norm c9BAAC0, Segoe UI
 Gui, Add, Text, x24 y154 w142 h48 vSidebarDescription BackgroundTrans, Session control`nfor your accounts.
-Gui, Add, Progress, x24 y226 w142 h1 hwndDivider Disabled Background303C50, 0
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x24 y254 w140 h20 BackgroundTrans, BEFORE YOU START
 Gui, Font, s10 Norm cB8C4D6, Segoe UI
@@ -49,7 +48,6 @@ Gui, Add, Text, x220 y26 w500 h40 vHeading, Your session, in control.
 Gui, Font, s10 Norm c9BAAC0, Segoe UI
 Gui, Add, Text, x222 y76 w504 h24 vSubtitle, Select your clients. Choose a profile. Start when ready.
 ; Connection card
-Gui, Add, Progress, x220 y116 w520 h150 hwndConnectionPanel Disabled Background1B2332 c1B2332, 100
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x240 y133 w300 h20 BackgroundTrans, 01 / CONNECTED CLIENTS
 Gui, Font, s10 Norm cE7EDF7, Segoe UI
@@ -57,7 +55,6 @@ Gui, Add, DropDownList, x240 y167 w350 vClientChoice, No Trove clients found
 AddButton("Refresh clients", "RefreshClients", 602, 165, 118, 30)
 Gui, Add, Checkbox, x240 y217 w460 h24 vAllClients gSelectionChanged BackgroundTrans, Use all detected clients (up to 8)
 ; Profile card
-Gui, Add, Progress, x220 y282 w520 h184 hwndProfilePanel Disabled Background1B2332 c1B2332, 100
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x240 y299 w450 h20 vProfileHeading BackgroundTrans, 02 / SESSION PROFILE
 Gui, Font, s10 Norm cE7EDF7, Segoe UI
@@ -95,9 +92,6 @@ if (RecoveryOnly) {
     GuiControl,, %StartButton%, Start monitoring
     buttons[StartButton].text := "Start monitoring"
 }
-; Decorative native controls must never sit in front of interactive siblings.
-for _, panel in [Sidebar, Divider, ConnectionPanel, ProfilePanel]
-    DllCall("SetWindowPos", "Ptr", panel, "Ptr", 1, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)
 ApplyTheme()
 Gui, Show, w770 h646, %WindowTitle%
 Gosub, RefreshClients
@@ -446,4 +440,32 @@ EnsureButtonStyles() {
             DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", true)
         }
     }
+}
+
+; Paint decoration on the parent itself: no child windows can intercept input
+; or repaint over the labels, dropdowns and checkboxes.
+DrawBackdrop(dc, unused, message, hwnd) {
+    global MainWindow
+    if (hwnd != MainWindow)
+        return
+    VarSetCapacity(rect, 16, 0)
+    DllCall("GetClientRect", "Ptr", hwnd, "Ptr", &rect)
+    FillBackdrop(dc, 0, 0, NumGet(rect, 8, "Int"), NumGet(rect, 12, "Int"), "10141D", 1)
+    scale := A_ScreenDPI / 96
+    FillBackdrop(dc, 0, 0, 190, 646, "151B27", scale)
+    FillBackdrop(dc, 24, 226, 142, 1, "303C50", scale)
+    FillBackdrop(dc, 220, 116, 520, 150, "1B2332", scale)
+    FillBackdrop(dc, 220, 282, 520, 184, "1B2332", scale)
+    return 1
+}
+
+FillBackdrop(dc, x, y, width, height, color, scale) {
+    VarSetCapacity(rect, 16, 0)
+    NumPut(Round(x * scale), rect, 0, "Int")
+    NumPut(Round(y * scale), rect, 4, "Int")
+    NumPut(Round((x + width) * scale), rect, 8, "Int")
+    NumPut(Round((y + height) * scale), rect, 12, "Int")
+    brush := DllCall("CreateSolidBrush", "UInt", BGR(color), "Ptr")
+    DllCall("FillRect", "Ptr", dc, "Ptr", &rect, "Ptr", brush)
+    DllCall("DeleteObject", "Ptr", brush)
 }
