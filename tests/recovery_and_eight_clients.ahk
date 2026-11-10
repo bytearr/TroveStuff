@@ -2,6 +2,7 @@
 #NoEnv
 #SingleInstance Force
 SetTitleMatchMode, 3
+SetControlDelay, -1
 OnExit("Cleanup")
 root := A_ScriptDir "\.."
 app := root "\ShipDestroyer1.1\ShipDestroyer.ahk"
@@ -27,7 +28,9 @@ WinWait, %window%,, 10
 if (ErrorLevel)
     Fail("Dashboard did not start")
 WaitStatus("8 client(s) available")
+Sleep, 200
 Control, Check,, Use all detected clients (up to 8), %window%
+Sleep, 150
 ControlClick, Start session, %window%,,,, NA
 WaitStatus("Running / Boomeranger / 8 client(s)")
 Sleep, 1500
@@ -72,6 +75,7 @@ WinWait, %window%,, 10
 if (ErrorLevel)
     Fail("AntiCrash did not start")
 WaitStatus("1 client(s) available")
+Sleep, 150
 ControlClick, Start monitoring, %window%,,,, NA
 WaitStatus("Monitoring / single client / Glyph")
 pid := pids[1]
@@ -91,6 +95,7 @@ if (size > 0)
 ; Stopping during the recovery delay must cancel the pending launcher click.
 ControlClick, Refresh clients, %window%,,,, NA
 WaitStatus("1 client(s) available")
+Sleep, 150
 ControlClick, Start monitoring, %window%,,,, NA
 WaitStatus("Monitoring / single client / Glyph")
 FileDelete, %marker%
