@@ -21,6 +21,7 @@ nextRecovery := 0
 attempts := 0
 OnExit("Cleanup")
 OnMessage(0x2B, "DrawButton")
+OnMessage(0x7C, "KeepButtonStyle")
 Gui, +HwndMainWindow +MinimizeBox -MaximizeBox
 Gui, Color, 10141D, 1B2332
 Gui, Margin, 0, 0
@@ -369,7 +370,10 @@ ApplyTheme() {
         color := BGR(bg)
         brush := DllCall("CreateSolidBrush", "UInt", color, "Ptr")
         controlBrushes[hwnd] := {brush: brush, color: color}
-        DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "WStr", "DarkMode_CFD", "Ptr", 0)
+        if (name = "ClientChoice" || name = "ClassChoice" || name = "Launcher")
+            DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "WStr", "DarkMode_CFD", "Ptr", 0)
+        else
+            DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "WStr", "", "WStr", "")
         ; Color the list popup as well as the closed combo box.
         size := A_PtrSize = 8 ? 64 : 52
         VarSetCapacity(info, size, 0)
@@ -390,4 +394,14 @@ ColorControl(dc, hwnd) {
     DllCall("SetTextColor", "Ptr", dc, "UInt", BGR("E7EDF7"))
     DllCall("SetBkColor", "Ptr", dc, "UInt", entry.color)
     return entry.brush
+}
+
+; The dialog manager changes default-button styles when keyboard focus moves.
+; Preserve owner-draw while leaving all other style flags intact.
+KeepButtonStyle(which, styles, message, hwnd) {
+    global buttons
+    if ((which = -16 || which = 0xFFFFFFF0) && buttons.HasKey(hwnd)) {
+        style := NumGet(styles + 0, 4, "UInt")
+        NumPut((style & ~15) | 11, styles + 0, 4, "UInt")
+    }
 }
