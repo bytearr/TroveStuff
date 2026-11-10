@@ -77,7 +77,8 @@ for _, name in ["Boomeranger", "Dracolyte", "Ice Sage", "Lunar Lancer"] {
         Sleep, 200
         AssertText("Running / " name " / 2 client(s)")
         ControlClick, Stop / F8, Ship Destroyer,,,, NA
-        Sleep, 150
+        AssertText("Stopped. All held keys released.")
+        Sleep, 100
         FileRead, first, %logPath%
         FileRead, second, %logPath2%
         key := name = "Ice Sage" ? 79 : 77
@@ -120,9 +121,15 @@ Sleep, 5000
 ExitApp, 0
 
 AssertText(expected) {
-    WinGetText, actual, Ship Destroyer
-    if (!InStr(actual, expected))
-        Fail("Missing UI state: " expected " / " actual)
+    deadline := A_TickCount + 3000
+    Loop {
+        WinGetText, actual, Ship Destroyer
+        if (InStr(actual, expected))
+            return
+        if (A_TickCount >= deadline)
+            Fail("Missing UI state: " expected " / " actual)
+        Sleep, 25
+    }
 }
 Fail(message) {
     FileAppend, %message%`n, **

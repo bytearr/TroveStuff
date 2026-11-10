@@ -241,7 +241,7 @@ StopAll(message := "Stopped. All held keys released.") {
     global running, recovering
     running := false
     recovering := false
-    SendTargets("{m up}{o up}{e up}{1 up}{2 up}{z up}{Space up}{Esc up}")
+    ReleaseKeys()
     LockSettings(false)
     SetStatus(message)
 }
@@ -249,7 +249,7 @@ StopAll(message := "Stopped. All held keys released.") {
 Cleanup(reason, code) {
     global running
     running := false
-    SendTargets("{m up}{o up}{e up}{1 up}{2 up}{z up}{Space up}{Esc up}")
+    ReleaseKeys()
 }
 
 LockSettings(locked) {
@@ -404,4 +404,13 @@ KeepButtonStyle(which, styles, message, hwnd) {
         style := NumGet(styles + 0, 4, "UInt")
         NumPut((style & ~15) | 11, styles + 0, 4, "UInt")
     }
+}
+
+ReleaseKeys() {
+    delay := A_KeyDelay
+    duration := A_KeyDuration
+    ; Cleanup must not wait once per key/client before the UI can stop.
+    SetKeyDelay, -1, -1
+    SendTargets("{m up}{o up}{e up}{1 up}{2 up}{z up}{Space up}{Esc up}")
+    SetKeyDelay, %delay%, %duration%
 }
