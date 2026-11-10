@@ -12,6 +12,7 @@ recovering := false
 clients := []
 targets := []
 buttons := {}
+controlBrushes := {}
 step := 1
 idleStep := 1
 nextAttack := 0
@@ -72,6 +73,7 @@ AddButton("Start session", "StartSession", 220, 551, 250, 42, "7DD3C7", "10141D"
 AddButton("Stop / F8", "StopSession", 488, 551, 252, 42, "303C50", "F3F6FC")
 Gui, Font, s10 c7DD3C7, Segoe UI
 Gui, Add, Text, x222 y610 w516 h24 vStatus, Ready. Refresh clients to connect.
+ApplyTheme()
 Gui, Show, w770 h646, Ship Destroyer
 Gosub, RefreshClients
 SetTimer, Tick, 25
@@ -315,6 +317,9 @@ AddButton(text, label, x, y, w, h, bg := "303C50", fg := "E7EDF7") {
     Gui, Font, s10 Bold, Segoe UI
     Gui, Add, Button, x%x% y%y% w%w% h%h% +0xB hwndhandle g%label%, %text%
     buttons[handle] := {text: text, bg: bg, fg: fg}
+    ; AHK normalizes button types during creation. Apply owner-draw afterwards.
+    style := DllCall("GetWindowLong", "Ptr", handle, "Int", -16, "UInt")
+    DllCall("SetWindowLong", "Ptr", handle, "Int", -16, "UInt", (style & ~15) | 11)
     Gui, Font, s10 Norm cE7EDF7, Segoe UI
 }
 
@@ -346,4 +351,39 @@ DrawButton(wParam, lParam) {
 BGR(hex) {
     value := "0x" hex
     return ((value & 255) << 16) | (value & 65280) | ((value >> 16) & 255)
+}
+
+ApplyTheme() {
+    global MainWindow, controlBrushes
+    dark := 1
+    DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", MainWindow, "UInt", 20, "Int*", dark, "UInt", 4)
+    for _, message in [0x133, 0x134, 0x138]
+        OnMessage(message, "ColorControl")
+    for _, name in ["ClientChoice", "AllClients", "ClassChoice", "Loot", "AttackEnabled", "IdleEnabled", "RecoveryEnabled", "Launcher"] {
+        GuiControlGet, hwnd, Hwnd, %name%
+        bg := (name = "RecoveryEnabled" || name = "Launcher") ? "10141D" : "1B2332"
+        color := BGR(bg)
+        brush := DllCall("CreateSolidBrush", "UInt", color, "Ptr")
+        controlBrushes[hwnd] := {brush: brush, color: color}
+        DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "WStr", "DarkMode_CFD", "Ptr", 0)
+        ; Color the list popup as well as the closed combo box.
+        size := A_PtrSize = 8 ? 64 : 52
+        VarSetCapacity(info, size, 0)
+        NumPut(size, info, 0, "UInt")
+        if (DllCall("GetComboBoxInfo", "Ptr", hwnd, "Ptr", &info)) {
+            list := NumGet(info, A_PtrSize = 8 ? 56 : 48, "Ptr")
+            controlBrushes[list] := {brush: brush, color: color}
+            DllCall("uxtheme\SetWindowTheme", "Ptr", list, "WStr", "DarkMode_Explorer", "Ptr", 0)
+        }
+    }
+}
+
+ColorControl(dc, hwnd) {
+    global controlBrushes
+    if (!controlBrushes.HasKey(hwnd))
+        return
+    entry := controlBrushes[hwnd]
+    DllCall("SetTextColor", "Ptr", dc, "UInt", BGR("E7EDF7"))
+    DllCall("SetBkColor", "Ptr", dc, "UInt", entry.color)
+    return entry.brush
 }
