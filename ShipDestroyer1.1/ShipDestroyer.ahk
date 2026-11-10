@@ -1,527 +1,420 @@
-#SingleInstance Force
+#Requires AutoHotkey v1.1.33+
 #NoEnv
+#SingleInstance Force
+SetBatchLines, -1
+SetWorkingDir, %A_ScriptDir%
+SetControlDelay, -1
+SetKeyDelay, 10, 20
+#Include %A_ScriptDir%\..\lib\Profiles.ahk
 
-;****************************************************************** INFORMATION *******************************************************
-Menu Tray, Icon, shell32.dll, 14
-Gui +AlwaysOnTop
-RunWith(32)
-DLLPath:=A_ScriptDir "\USkin.dll"
-StylesPath:=A_ScriptDir "\style\"
+running := false
+recovering := false
+clients := []
+targets := []
+buttons := {}
+controlBrushes := {}
+step := 1
+idleStep := 1
+nextAttack := 0
+nextIdle := 0
+nextRecovery := 0
+attempts := 0
+OnExit("Cleanup")
+OnMessage(0x2B, "DrawButton")
 
-stylearray:=Object() ;create StyleArray to hold styles
-Loop,% StylesPath "*.msstyles"
-	stylearray.insert(A_LoopFilename)
-total:= stylearray.MaxIndex() ;Get total number of styles
-for key, value in stylearray {
-	CurrentStyle:=value
-	SkinForm(DLLPath,Apply, StylesPath . CurrentStyle)
-	SkinForm(DLLPath,"0", StylesPath . CurrentStyle)	
-}
-
-SkinForm(DLLPath,Param1 = "Apply", SkinName = ""){
-	if(Param1 = Apply){
-		DllCall("LoadLibrary", str, DLLPath)
-		DllCall(DLLPath . "\USkinInit", Int,0, Int,0, AStr, SkinName)
-	}else if(Param1 = 0){
-		DllCall(DLLPath . "\USkinExit")
-	}
-}
-Gui Add, Button, x96 y80 w80 h40 gButtonReloadScript, Reload Script
-Gui Add, Button, x20 y20 w100 h30 gOneAccount, One Account
-Gui Add, Button, x150 y20 w100 h30 gMultiAccount, Multiple Accounts
-Gui, Show, w272 h125, Ship Destroyer
-Return
-
-;****************************************************************** ONE ACCOUNT *******************************************************
-OneAccount:
-    Gui, New, +AlwaysOnTop
-	Gui, Add, Button, x142 y29 w100 h30 gButtonRenameTrove1, Rename Trove
-	Gui, Add, Text, x16 y39 w120 h10 , MUST PRESS THIS --->
-	Gui, Add, Text, x252 y39 w120 h10 , <--- BEFORE STARTING
-	Gui, Add, Text, x133 y65 w120 h10 +Center, ONE Class at a time!
-	;*********** ONE-ACC : Rename Trove section ***********
-	Gui, Add, Button, x142 y29 w100 h30 gButtonRenameTrove1, Rename Trove
-	Gui, Add, Text, x16 y39 w120 h10 , MUST PRESS THIS --->
-	Gui, Add, Text, x252 y39 w120 h10 , <--- BEFORE STARTING
-	Gui, Add, Text, x133 y65 w120 h10 +Center, ONE Class at a time!
-	;*********** ONE-ACC : Boomeranger section ***********
-	Gui, Add, GroupBox, x12 y79 w170 h80, Boomeranger
-	Gui, Add, Button, x22 y99 w150 h20 gButtonStartAttackingWithPickUpBR, Attack with Loot
-	Gui, Add, Button, x22 y129 w150 h20 gButtonStartAttackingWithoutPickUpBR, Attack without Loot
-	;*********** ONE-ACC : Dracolyte section ***********
-	Gui, Add, GroupBox, x202 y79 w170 h80 , Dracolyte
-	Gui, Add, Button, x212 y99 w150 h20 gButtonStartAttackingWithPickUpDraco, Attack with Loot
-	Gui, Add, Button, x212 y129 w150 h20 gButtonStartAttackingWithoutPickUpDraco, Attack without Loot
-	;*********** ONE-ACC : Ice Sage section ***********
-	Gui, Add, GroupBox, x12 y169 w170 h80 , Ice Sage
-	Gui, Add, Button, x22 y189 w150 h20 gButtonStartAttackingWithPickUpIS, Attack with Loot
-	Gui, Add, Button, x22 y219 w150 h20 gButtonStartAttackingWithoutPickUpIS, Attack without Loot
-	;*********** ONE-ACC : Lunar Lancer section ***********
-	Gui, Add, GroupBox, x202 y169 w170 h80 , Lunar Lancer
-	Gui, Add, Button, x212 y189 w150 h20 gButtonStartAttackingWithPickUpLL, Attack with Loot
-	Gui, Add, Button, x212 y219 w150 h20 gButtonStartAttackingWithoutPickUpLL, Attack without Loot
-	;*********** ONE-ACC : Stop Attacking section ***********
-	Gui, Add, Button, x143 y400 w100 h30 gButtonStopActionsOneAcc, Stop Attacking
-	;*********** Anti-Crash One-Acc section ***********
-	Gui, Add, GroupBox, x12 y260 w170 h120 , Anti-Crash
-	Gui, Add, Button, x22 y280 w130 h30 gEnableAntiCrash, Enable Anti-Crash
-	Gui, Add, Button, x22 y330 w130 h30 gDisableAntiCrash, Disable Anti-Crash
-	;*********** AntiAFK One-Acc section ***********
-	Gui, Add, GroupBox, x202 y260 w170 h120 , AntiAFK
-	Gui, Add, Button, x225 y280 w130 h30 gEnableAntiAFK, Enable AntiAFK
-	Gui, Add, Button,x225 y330 w130 h30 gDisableAntiAFK, Disable AntiAFK
-	;*********** GUI TITLE ***********
-    Gui Show, w400 h440, One Account Menu
-    Return
-
-;*********** ONE-ACC : Boomeranger Attack section ***********
-;*********** ONE-ACC : Boomeranger Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpBR:
-    startedPickup := true
-    while(startedPickup){
-        ControlSend,,{Esc Down}, Afk4Life
-        ControlSend,,{m down}, Afk4Life
-        ControlSend,,{e down}, Afk4Life
-        sleep, 5000
-        ControlSend,,{e up}, Afk4Life
-        ControlSend,,{m up}, Afk4Life
-        ControlSend,,{o down}, Afk4Life
-        sleep, 500
-        ControlSend,,{o up}, Afk4Life
-        ControlSend,,{2 down}, Afk4Life
-        sleep, 200
-        ControlSend,,{2 up}, Afk4Life
-		sleep, 100
-        ControlSend,,{Esc Up}, Afk4Life
-    }
-Return
-;*********** ONE-ACC : Boomeranger Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpBR:
-    started := true
-    while(started){
-        ControlSend,,{Esc Down}, Afk4Life
-        ControlSend,,{m down}, Afk4Life
-        sleep, 5000
-        ControlSend,,{m up}, Afk4Life
-        ControlSend,,{o down}, Afk4Life
-        sleep, 500
-        ControlSend,,{o up}, Afk4Life
-        ControlSend,,{2 down}, Afk4Life
-        sleep, 200
-        ControlSend,,{2 up}, Afk4Life
-		sleep, 100
-        ControlSend,,{Esc Up}, Afk4Life
-    }
-Return
-;*********** ONE-ACC : Dracolyte Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpDraco:
-    startedPickup := true
-    while(startedPickup){
-        ControlSend,, {m down}, Afk4Life
-        ControlSend,, {1 down}, Afk4Life
-        ControlSend,, {e down}, Afk4Life
-        Sleep, 100
-        ControlSend,, {1 up}, Afk4Life
-        Sleep, 700
-        ControlSend,, {2 down}, Afk4Life
-        ControlSend,, {e up}, Afk4Life
-        Sleep, 100
-        ControlSend,, {2 up}, Afk4Life
-        ControlSend,, {m up}, Afk4Life
-    }
-Return
-;*********** ONE-ACC : Dracolyte Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpDraco:
-    started := true
-    while(started){
-        ControlSend,, {m down}, Afk4Life
-        ControlSend,, {1 down}, Afk4Life
-        Sleep, 100
-        ControlSend,, {1 up}, Afk4Life
-        Sleep, 700
-        ControlSend,, {2 down}, Afk4Life
-        Sleep, 100
-        ControlSend,, {2 up}, Afk4Life
-        ControlSend,, {m up}, Afk4Life
-    }
-Return
-;*********** ONE-ACC : Ice Sage Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpIS:
-    startedPickup := true
-    while(startedPickup){
-        ControlSend,,{o down}, Afk4Life
-        ControlSend,,{1 down}, Afk4Life
-        ControlSend,,{e down}, Afk4Life
-        sleep, 100
-        ControlSend,,{1 up}, Afk4Life
-        ControlSend,,{o up}, Afk4Life
-        sleep, 300
-        ControlSend,,{e up}, Afk4Life
-    }
-Return
-;*********** ONE-ACC : Ice Sage Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpIS:
-    started := true
-    while(started){
-        ControlSend,,{o down}, Afk4Life
-        ControlSend,,{1 down}, Afk4Life
-        sleep, 100
-        ControlSend,,{1 up}, Afk4Life
-        ControlSend,,{o up}, Afk4Life
-        sleep, 300
-    }
-Return
-;*********** ONE-ACC : Lunar Lancer Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpLL:
-    startedPickup := true
-    while(startedPickup){
-        ControlSend,,{m down}, Afk4Life
-        ControlSend,,{e down}, Afk4Life
-        sleep, 5000
-        ControlSend,,{e up}, Afk4Life
-        ControlSend,,{m up}, Afk4Life
-        sleep, 500
-        ControlSend,,{2 down}, Afk4Life
-        sleep, 200
-        ControlSend,,{2 up}, Afk4Life
-        sleep, 100
-    }
-Return
-;*********** ONE-ACC : Lunar Lancer Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpLL:
-    started := true
-    while(started){
-        ControlSend,,{m down}, Afk4Life
-        sleep, 5000
-        ControlSend,,{m up}, Afk4Life
-        sleep, 500
-        ControlSend,,{2 down}, Afk4Life
-        sleep, 200
-        ControlSend,,{2 up}, Afk4Life
-        sleep, 100
-    }
-Return
-;*********** ONE-ACC Stop Attacking ***********
-ButtonStopActionsOneAcc:
-    started := false
-    startedPickup := false
-    startedJump := false
-Return
-;*********** ONE-ACC Rename Trove ***********
-ButtonRenameTrove1:
-    If (WinExist("Trove") && !WinExist("Afk4Life")){
-        WinActivate, Trove
-        WinSetTitle, Trove, , %Title%Afk4Life
-        Sleep, 5000
-    }
-Return
-;*********** ANTI-CRASH One-Acc Section ***********
-EnableAntiCrash:
-    SetTimer, AntiCrash, On
-    GuiControl, Disable, Enable Anti-Crash
-    GuiControl, Enable, Disable Anti-Crash
-    return
-
-DisableAntiCrash:
-    SetTimer, AntiCrash, Off
-    GuiControl, Enable, Enable Anti-Crash
-    GuiControl, Disable, Disable Anti-Crash
-    return
-
-AntiCrash:
-    if (!WinExist("Afk4Life")) {
-        WinClose, Trove - Error Handler
-        Sleep, 200
-        WinActivate, Glyph
-        WinWaitActive, Glyph
-        WinGetPos, Xpos, Ypos,Wpos,Hpos, Glyph
-        clickPost := "x"+ Wpos *(80/100) " y" + Hpos * (14/100)
-        Sleep, 500
-        ControlClick, %clickPost% , Glyph 
-        Sleep, 1000
-        If (!WinExist("Trove")){
-            ControlClick, %clickPost% , Glyph 
-        }
-        Sleep, 5000
-        WinActivate, Trove
-        WinSetTitle, Trove, , %Title%Afk4Life
-    }
-    return
-;*********** AntiAFK One-Acc Section ***********
-EnableAntiAFK:
-    SetTimer, AntiAFK, On
-    GuiControl, Disable, Enable AntiAFK
-    GuiControl, Enable, Disable AntiAFK
-    return
-
-DisableAntiAFK:
-    SetTimer, AntiAFK, Off
-    GuiControl, Enable, Enable AntiAFK
-    GuiControl, Disable, Disable AntiAFK
-    return
-	
-AntiAFK:
-    startedJump := true
-    while(startedJump){
-        ControlSend,, {1 down}, %Title%Afk4Life
-        ControlSend,, {1 up}, %Title%Afk4Life
-        Sleep, 400
-        ControlSend,, {z down}, %Title%Afk4Life
-        ControlSend,, {z up}, %Title%Afk4Life
-        ControlSend,, {space down}, %Title%Afk4Life
-        ControlSend,, {space up}, %Title%Afk4Life
-        Sleep, 400
-        ControlSend,, {space down}, %Title%Afk4Life
-        ControlSend,, {space up}, %Title%Afk4Life
-        Sleep, 400
-        ControlSend,, {space down}, %Title%Afk4Life
-        ControlSend,, {space up}, %Title%Afk4Life
-        Sleep, 400
-        ControlSend,, {space down}, %Title%Afk4Life
-        ControlSend,, {space up}, %Title%Afk4Life
-        Sleep, 20200
-    }
-Return
-
-;****************************************************************** MULTI ACCOUNT *******************************************************
-MultiAccount:
-    Gui, New, +AlwaysOnTop
-	Gui, Add, Button, x142 y29 w100 h30 gButtonRenameTrove2, Rename Trove
-	Gui, Add, Text, x16 y39 w120 h10 , MUST PRESS THIS --->
-	Gui, Add, Text, x252 y39 w120 h10 , <--- BEFORE STARTING
-	Gui, Add, Text, x133 y65 w120 h10 +Center, ONE Class at a time!
-	Gui, Add, GroupBox, x12 y79 w170 h80, Boomeranger
-	Gui, Add, Button, x22 y99 w150 h20 gButtonStartAttackingWithPickUpBR2, Attack with Loot
-	Gui, Add, Button, x22 y129 w150 h20 gButtonStartAttackingWithoutPickUpBR2, Attack without Loot
-	Gui, Add, GroupBox, x202 y79 w170 h80 , Dracolyte
-	Gui, Add, Button, x212 y99 w150 h20 gButtonStartAttackingWithPickUpDraco2, Attack with Loot
-	Gui, Add, Button, x212 y129 w150 h20 gButtonStartAttackingWithoutPickUpDraco2, Attack without Loot
-	Gui, Add, GroupBox, x12 y169 w170 h80 , Ice Sage
-	Gui, Add, Button, x22 y189 w150 h20 gButtonStartAttackingWithPickUpIS2, Attack with Loot
-	Gui, Add, Button, x22 y219 w150 h20 gButtonStartAttackingWithoutPickUpIS2, Attack without Loot
-	Gui, Add, GroupBox, x202 y169 w170 h80 , Lunar Lancer
-	Gui, Add, Button, x212 y189 w150 h20 gButtonStartAttackingWithPickUpLL2, Attack with Loot
-	Gui, Add, Button, x212 y219 w150 h20 gButtonStartAttackingWithoutPickUpLL2, Attack without Loot
-	Gui, Add, Button, x143 y380 w100 h30 gButtonStopActionsMultiAcc, Stop Attacking
-    Gui Show, w400 h440, Multiple Accounts Menu
-    Return
-
-;*********** MULTI-ACC : Boomeranger Attack section ***********
-;*********** MULTI-ACC : Boomeranger Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpBR2:
-started := true
-while (started) {
-    Loop, 8 {
-        ControlSend,, {m down}, Afking%A_Index%
-        ControlSend,, {e down}, Afking%A_Index%
-    }
-    sleep 5000
-    Loop, 8 {
-        ControlSend,, {e up}, Afking%A_Index%
-        ControlSend,, {m up}, Afking%A_Index%
-        ControlSend,, {o down}, Afking%A_Index%
-    }
-    sleep 500
-    Loop, 8 {
-        ControlSend,, {o up}, Afking%A_Index%
-        ControlSend,, {2 down}, Afking%A_Index%
-        ControlSend,, {2 up}, Afking%A_Index%
-    }
-    sleep 100
-}
-Return
-;*********** MULTI-ACC : Boomeranger Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpBR2:
-started := true
-while (started) {
-    Loop, 8 {
-        ControlSend,, {m down}, Afking%A_Index%
-    }
-    sleep 5000
-    Loop, 8 {
-        ControlSend,, {m up}, Afking%A_Index%
-        ControlSend,, {o down}, Afking%A_Index%
-    }
-    sleep 500
-    Loop, 8 {
-        ControlSend,, {o up}, Afking%A_Index%
-        ControlSend,, {2 down}, Afking%A_Index%
-        ControlSend,, {2 up}, Afking%A_Index%
-    }
-    sleep 100
-}
-Return
-;*********** MULTI-ACC : Dracolyte Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpDraco2:
-started := true
-while (started) {
-    Loop, 8 {
-        ControlSend,, {1 down}, Afking%A_Index%
-        ControlSend,, {1 down}, Afking%A_Index%
-        ControlSend,, {e down}, Afking%A_Index%
-    }
-    sleep 100
-    Loop, 8 {
-        ControlSend,, {1 up}, Afking%A_Index%
-	ControlSend,, {1 up}, Afking%A_Index%
-	ControlSend,, {2 down}, Afking%A_Index%
-    }
-    sleep 700
-    Loop, 8 {
-        ControlSend,, {e up}, Afking%A_Index%
-	ControlSend,, {2 up}, Afking%A_Index%
-    }
-    sleep 100
-}
-Return
-;*********** MULTI-ACC : Dracolyte Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpDraco2:
-started := true
-while (started) {
-    Loop, 8 {
-        ControlSend,, {1 down}, Afking%A_Index%
-        ControlSend,, {1 down}, Afking%A_Index%
-    }
-    sleep 100
-    Loop, 8 {
-        ControlSend,, {1 up}, Afking%A_Index%
-	ControlSend,, {1 up}, Afking%A_Index%
-	ControlSend,, {2 down}, Afking%A_Index%
-    }
-    sleep 700
-    Loop, 8 {
-	ControlSend,, {2 up}, Afking%A_Index%
-    }
-    sleep 100
-}
-Return
-;*********** MULTI-ACC : Ice Sage Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpIS2:
-started := true
-while (started) {
-    Loop, 8 {
-        ControlSend,, {o down}, Afking%A_Index%
-        ControlSend,, {1 down}, Afking%A_Index%
-	ControlSend,, {e down}, Afking%A_Index%
-	ControlSend,, {e down}, Afking%A_Index%
-    }
-    sleep 100
-    Loop, 8 {
-        ControlSend,, {o up}, Afking%A_Index%
-        ControlSend,, {1 up}, Afking%A_Index%
-    }
-    sleep 200
-    Loop, 8 {
-	ControlSend,, {e up}, Afking%A_Index%
-    }
-    sleep 200
-}
-Return
-;*********** MULTI-ACC : Ice Sage Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpIS2:
-started := true
-while (started) {
-    Loop, 8 {
-        ControlSend,, {o down}, Afking%A_Index%
-        ControlSend,, {1 down}, Afking%A_Index%
-    }
-    sleep 100
-    Loop, 8 {
-        ControlSend,, {o up}, Afking%A_Index%
-        ControlSend,, {1 up}, Afking%A_Index%
-    }
-    sleep 200
-    
-}
-Return
-;*********** MULTI-ACC : Lunar Lancer Attack With Pickup section ***********
-ButtonStartAttackingWithPickUpLL2:
-    startedPickup := true
-    while(startedPickup){
-	    Loop, 8 {
-        ControlSend,,{m down}, Afking%A_Index%
-        ControlSend,,{e down}, Afking%A_Index%
-		}
-        sleep, 5000
-		Loop, 8 {
-        ControlSend,,{e up}, Afking%A_Index%
-        ControlSend,,{m up}, Afking%A_Index%
-		}
-        sleep, 500
-		Loop, 8 {
-        ControlSend,,{2 down}, Afking%A_Index%
-		}
-        sleep, 200
-		Loop, 8 {
-        ControlSend,,{2 up}, Afking%A_Index%
-		}
-        sleep, 100
-    }
-Return
-;*********** MULTI-ACC : Lunar Lancer Attack Without Pickup section ***********
-ButtonStartAttackingWithoutPickUpLL2:
-    started := true
-    while(started){
-	    Loop, 8 {
-        ControlSend,,{m down}, Afking%A_Index%
-		}
-        sleep, 5000
-		Loop, 8 {
-        ControlSend,,{m up}, Afking%A_Index%
-		}
-        sleep, 500
-		Loop, 8 {
-        ControlSend,,{2 down}, Afking%A_Index%
-		}
-        sleep, 200
-		Loop, 8 {
-        ControlSend,,{2 up}, Afking%A_Index%
-		}
-        sleep, 100
-    }
-Return
-
-;*********** MULTI-ACC Stop Attacking ***********
-ButtonStopActionsMultiAcc:
-    started := false
-    startedPickup := false
-    startedJump := false
-Return
-
-;*********** MULTI-ACC : Rename Trove section ***********
-ButtonRenameTrove2:
-Loop, 8 {
-    if WinExist("Trove") && !WinExist("Afking" . A_Index) {
-        WinActivate, Trove
-        WinSetTitle, Trove, , Afking%A_Index%
-        sleep 1500
-    }
-}
-Return
-
-;****************************************************************** RELOAD SCRIPT  *******************************************************
-ButtonReloadScript:
-{
-    Reload
-    IniRead, LoadText, %A_ScriptDir%/%IniFile%, Main, Text
-}
-
-global started := false
+Gui, +HwndMainWindow +MinimizeBox -MaximizeBox
+Gui, Color, 10141D, 1B2332
+Gui, Margin, 0, 0
+Gui, Font, s10 cE7EDF7, Segoe UI
+; Sidebar
+Gui, Add, Progress, x0 y0 w190 h646 Background151B27 c151B27, 100
+Gui, Font, s9 Bold c7DD3C7, Segoe UI
+Gui, Add, Text, x24 y30 w145 h20 BackgroundTrans, TROVE / TOOLKIT
+Gui, Font, s19 Bold cF3F6FC, Segoe UI
+Gui, Add, Text, x24 y65 w150 h64 BackgroundTrans, Ship`nDestroyer
+Gui, Font, s10 Norm c9BAAC0, Segoe UI
+Gui, Add, Text, x24 y154 w142 h48 BackgroundTrans, Session control`nfor your accounts.
+Gui, Add, Progress, x24 y226 w142 h1 Background303C50, 0
+Gui, Font, s9 Bold c7DD3C7, Segoe UI
+Gui, Add, Text, x24 y254 w140 h20 BackgroundTrans, BEFORE YOU START
+Gui, Font, s10 Norm cB8C4D6, Segoe UI
+Gui, Add, Text, x24 y288 w142 h108 BackgroundTrans, Bind attack to M`nSecondary to O`nLoot to E`nSkills to 1 and 2
+Gui, Font, s9 c8392A9, Segoe UI
+Gui, Add, Text, x24 y534 w144 h76 BackgroundTrans, F8  Stop everything`nInsert  Show / hide`n`nMars / Vash / Yumo
+; Main heading
+Gui, Font, s23 Bold cF3F6FC, Segoe UI
+Gui, Add, Text, x220 y26 w500 h40, Your session, in control.
+Gui, Font, s10 Norm c9BAAC0, Segoe UI
+Gui, Add, Text, x222 y76 w504 h24, Select your clients. Choose a profile. Start when ready.
+; Connection card
+Gui, Add, Progress, x220 y116 w520 h150 Background1B2332 c1B2332, 100
+Gui, Font, s9 Bold c7DD3C7, Segoe UI
+Gui, Add, Text, x240 y133 w300 h20 BackgroundTrans, 01 / CONNECTED CLIENTS
+Gui, Font, s10 Norm cE7EDF7, Segoe UI
+Gui, Add, DropDownList, x240 y167 w350 vClientChoice, No Trove clients found
+AddButton("Refresh clients", "RefreshClients", 602, 165, 118, 30)
+Gui, Add, Checkbox, x240 y217 w460 h24 vAllClients gSelectionChanged BackgroundTrans, Use all detected clients (up to 8)
+; Profile card
+Gui, Add, Progress, x220 y282 w520 h184 Background1B2332 c1B2332, 100
+Gui, Font, s9 Bold c7DD3C7, Segoe UI
+Gui, Add, Text, x240 y299 w450 h20 BackgroundTrans, 02 / SESSION PROFILE
+Gui, Font, s10 Norm cE7EDF7, Segoe UI
+Gui, Add, Text, x240 y334 w200 h22 BackgroundTrans, Character class
+Gui, Add, DropDownList, x240 y362 w220 vClassChoice Choose1, Boomeranger|Dracolyte|Ice Sage|Lunar Lancer
+Gui, Add, Checkbox, x488 y361 w222 h24 vLoot Checked BackgroundTrans, Collect loot
+Gui, Add, Checkbox, x240 y414 w220 h24 vAttackEnabled Checked BackgroundTrans, Attack rotation
+Gui, Add, Checkbox, x488 y414 w222 h24 vIdleEnabled BackgroundTrans, Anti-AFK movement
+; Recovery and controls
+Gui, Font, s10 cB8C4D6, Segoe UI
+Gui, Add, Checkbox, x222 y484 w305 h24 vRecoveryEnabled gSelectionChanged, Recover a single disconnected client
+Gui, Add, DropDownList, x544 y482 w194 vLauncher Choose1, Glyph|Steam
+Gui, Font, s9 c8392A9, Segoe UI
+Gui, Add, Text, x222 y516 w510 h20, Glyph recovery needs the launcher open on the Trove page.
+AddButton("Start session", "StartSession", 220, 551, 250, 42, "7DD3C7", "10141D")
+AddButton("Stop / F8", "StopSession", 488, 551, 252, 42, "303C50", "F3F6FC")
+Gui, Font, s10 c7DD3C7, Segoe UI
+Gui, Add, Text, x222 y610 w516 h24 vStatus, Ready. Refresh clients to connect.
+ApplyTheme()
+Gui, Show, w770 h646, Ship Destroyer
+Gosub, RefreshClients
+SetTimer, Tick, 25
 return
-;*************************** AHK VERSION FOR THEME ***************************
-runWith(version){	
-	if (A_PtrSize=(version=32?4:8))
-		Return
-	
-	SplitPath,A_AhkPath,,ahkDir ;get directory of AutoHotkey executable
-	if (!FileExist(correct := ahkDir "\AutoHotkeyU" version ".exe")){
-		MsgBox,0x10,"Error",% "Couldn't find the " version " bit Unicode version of Autohotkey in:`n" correct
-		ExitApp
-	}
-	Run,"%correct%" "%A_ScriptName%",%A_ScriptDir%
-	ExitApp
+
+RefreshClients:
+if (running) {
+    SetStatus("Stop the session before refreshing clients.")
+    return
 }
-;*************************** CLOSE SCRIPT ***************************
+clients := FindClients()
+items := ""
+for index, client in clients
+    items .= (index = 1 ? "" : "|") client.title "  /  PID " client.pid
+if (!clients.Length())
+    items := "No Trove clients found"
+GuiControl,, ClientChoice, |%items%
+GuiControl, Choose, ClientChoice, 1
+SetStatus(clients.Length() ? clients.Length() " client(s) available. Ready to start." : "Open Trove, then refresh clients.")
+return
+
+SelectionChanged:
+Gui, Submit, NoHide
+if (AllClients) {
+    GuiControl,, RecoveryEnabled, 0
+    GuiControl, Disable, RecoveryEnabled
+} else
+    GuiControl, Enable, RecoveryEnabled
+return
+
+StartSession:
+Critical
+if (running)
+    return
+Gui, Submit, NoHide
+; AltSubmit returns the selected row, avoiding duplicate or renamed titles.
+GuiControl, +AltSubmit, ClientChoice
+GuiControlGet, selectedIndex, , ClientChoice
+GuiControl, -AltSubmit, ClientChoice
+if (!AttackEnabled && !IdleEnabled && !RecoveryEnabled) {
+    SetStatus("Enable attack, Anti-AFK, or recovery first.")
+    return
+}
+targets := []
+if (AllClients) {
+    for index, client in clients {
+        if (index <= 8 && IsClient(client))
+            targets.Push(client)
+    }
+} else if (clients.HasKey(selectedIndex) && IsClient(clients[selectedIndex]))
+    targets.Push(clients[selectedIndex])
+if (!targets.Length()) {
+    SetStatus("No connected client selected. Refresh clients first.")
+    return
+}
+if (RecoveryEnabled && FindClients().Length() != 1) {
+    SetStatus("Recovery requires exactly one open Trove client.")
+    return
+}
+profile := BuildProfile(ClassChoice, Loot)
+idleProfile := BuildIdleProfile()
+step := 1
+idleStep := 1
+nextAttack := A_TickCount
+nextIdle := A_TickCount
+attempts := 0
+recovering := false
+running := true
+LockSettings(true)
+SetStatus("Running / " ClassChoice " / " targets.Length() " client(s)")
+return
+
+StopSession:
+Critical
+StopAll()
+return
+
+Tick:
+Critical
+EnsureButtonStyles()
+if (!running)
+    return
+for index, client in targets {
+    if (!IsClient(client)) {
+        if (RecoveryEnabled && !AllClients && targets.Length() = 1) {
+            if (!recovering) {
+                recovering := true
+                nextRecovery := A_TickCount + 3000
+                SetStatus("Client disconnected. Waiting before recovery...")
+            }
+        } else {
+            StopAll("Client disconnected. Refresh clients before restarting.")
+            return
+        }
+    }
+}
+if (recovering) {
+    RecoverClient()
+    return
+}
+now := A_TickCount
+if (AttackEnabled && now >= nextAttack) {
+    action := profile[step]
+    SendTargets(action.keys)
+    nextAttack := now + action.delay
+    step := Mod(step, profile.Length()) + 1
+}
+if (IdleEnabled && now >= nextIdle) {
+    action := idleProfile[idleStep]
+    SendTargets(action.keys)
+    nextIdle := now + action.delay
+    idleStep := Mod(idleStep, idleProfile.Length()) + 1
+}
+return
+
+F8::
+Gosub, StopSession
+return
+
+Insert::
+if (DllCall("IsWindowVisible", "Ptr", MainWindow))
+    Gui, Hide
+else
+    Gui, Show
+return
+
 GuiClose:
-    ExitApp
-Return
+ExitApp
+return
+
+FindClients() {
+    found := []
+    WinGet, windows, List, ahk_exe Trove.exe
+    Loop, %windows% {
+        hwnd := windows%A_Index%
+        WinGetTitle, title, ahk_id %hwnd%
+        if (title = "")
+            continue
+        WinGet, pid, PID, ahk_id %hwnd%
+        found.Push({hwnd: hwnd, pid: pid, title: StrReplace(title, "|", "/")})
+    }
+    return found
+}
+
+IsClient(client) {
+    hwnd := client.hwnd
+    WinGet, pid, PID, ahk_id %hwnd%
+    WinGet, exe, ProcessName, ahk_id %hwnd%
+    return (pid = client.pid && exe = "Trove.exe")
+}
+
+SendTargets(keys) {
+    global targets
+    if (keys = "")
+        return
+    for index, client in targets {
+        if (IsClient(client)) {
+            hwnd := client.hwnd
+            ControlSend,, %keys%, ahk_id %hwnd%
+        }
+    }
+}
+
+StopAll(message := "Stopped. All held keys released.") {
+    global running, recovering
+    running := false
+    recovering := false
+    ReleaseKeys()
+    LockSettings(false)
+    SetStatus(message)
+}
+
+Cleanup(reason, code) {
+    global running
+    running := false
+    ReleaseKeys()
+}
+
+LockSettings(locked) {
+    global AllClients
+    for index, name in ["ClientChoice", "AllClients", "ClassChoice", "Loot", "AttackEnabled", "IdleEnabled", "RecoveryEnabled", "Launcher"] {
+        action := locked ? "Disable" : "Enable"
+        GuiControl, %action%, %name%
+    }
+    if (!locked && AllClients)
+        GuiControl, Disable, RecoveryEnabled
+}
+
+SetStatus(message) {
+    GuiControl,, Status, %message%
+}
+
+RecoverClient() {
+    global targets, recovering, nextRecovery, attempts, Launcher, step, idleStep, nextAttack, nextIdle
+    if (A_TickCount < nextRecovery)
+        return
+    found := FindClients()
+    if (found.Length() = 1) {
+        targets := found
+        recovering := false
+        attempts := 0
+        step := 1
+        idleStep := 1
+        ; Allow the restarted game to load before resuming input.
+        nextAttack := A_TickCount + 15000
+        nextIdle := nextAttack
+        SetStatus("Client reconnected. Resuming in 15 seconds.")
+        return
+    }
+    if (found.Length() > 1) {
+        StopAll("Multiple clients found. Select the correct account manually.")
+        return
+    }
+    if (attempts >= 3) {
+        StopAll("Recovery timed out. Check the launcher and refresh clients.")
+        return
+    }
+    attempts += 1
+    nextRecovery := A_TickCount + 60000
+    if (Launcher = "Steam") {
+        Run, steam://rungameid/304050,, UseErrorLevel
+        if (ErrorLevel)
+            StopAll("Steam could not be opened. Start Trove manually.")
+    } else {
+        hwnd := WinExist("ahk_exe GlyphClient.exe")
+        if (!hwnd) {
+            StopAll("Open Glyph on its Trove page before enabling recovery.")
+            return
+        }
+        VarSetCapacity(rect, 16, 0)
+        DllCall("GetClientRect", "Ptr", hwnd, "Ptr", &rect)
+        width := NumGet(rect, 8, "Int")
+        height := NumGet(rect, 12, "Int")
+        if (width <= 0 || height <= 0) {
+            StopAll("Glyph is not ready. Restore its window and try again.")
+            return
+        }
+        position := "x" Round(width * 0.80) " y" Round(height * 0.14)
+        ControlClick, %position%, ahk_id %hwnd%,,,, NA
+    }
+    SetStatus("Recovery attempt " attempts " / 3. Waiting for Trove...")
+}
+
+AddButton(text, label, x, y, w, h, bg := "303C50", fg := "E7EDF7") {
+    global buttons
+    Gui, Font, s10 Bold, Segoe UI
+    Gui, Add, Button, x%x% y%y% w%w% h%h% +0xB hwndhandle g%label%, %text%
+    buttons[handle] := {text: text, bg: bg, fg: fg}
+    ; AHK normalizes button types during creation. Apply owner-draw afterwards.
+    style := DllCall("GetWindowLong", "Ptr", handle, "Int", -16, "UInt")
+    DllCall("SetWindowLong", "Ptr", handle, "Int", -16, "UInt", (style & ~15) | 11)
+    Gui, Font, s10 Norm cE7EDF7, Segoe UI
+}
+
+; Owner-drawn native buttons retain keyboard focus and accessibility labels.
+DrawButton(wParam, lParam) {
+    global buttons
+    hwnd := NumGet(lParam + 0, A_PtrSize = 8 ? 24 : 20, "Ptr")
+    if (!buttons.HasKey(hwnd))
+        return
+    button := buttons[hwnd]
+    dc := NumGet(lParam + 0, A_PtrSize = 8 ? 32 : 24, "Ptr")
+    rect := lParam + (A_PtrSize = 8 ? 40 : 28)
+    state := NumGet(lParam + 0, 16, "UInt")
+    color := (state & 1) ? "52637C" : button.bg
+    brush := DllCall("CreateSolidBrush", "UInt", BGR(color), "Ptr")
+    DllCall("FillRect", "Ptr", dc, "Ptr", rect, "Ptr", brush)
+    DllCall("DeleteObject", "Ptr", brush)
+    DllCall("SetBkMode", "Ptr", dc, "Int", 1)
+    DllCall("SetTextColor", "Ptr", dc, "UInt", BGR(button.fg))
+    font := DllCall("SendMessage", "Ptr", hwnd, "UInt", 0x31, "Ptr", 0, "Ptr", 0, "Ptr")
+    old := DllCall("SelectObject", "Ptr", dc, "Ptr", font, "Ptr")
+    DllCall("DrawText", "Ptr", dc, "Str", button.text, "Int", -1, "Ptr", rect, "UInt", 0x25)
+    DllCall("SelectObject", "Ptr", dc, "Ptr", old)
+    if (state & 0x10)
+        DllCall("DrawFocusRect", "Ptr", dc, "Ptr", rect)
+    return true
+}
+
+BGR(hex) {
+    value := "0x" hex
+    return ((value & 255) << 16) | (value & 65280) | ((value >> 16) & 255)
+}
+
+ApplyTheme() {
+    global MainWindow, controlBrushes
+    dark := 1
+    DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", MainWindow, "UInt", 20, "Int*", dark, "UInt", 4)
+    for _, message in [0x133, 0x134, 0x138]
+        OnMessage(message, "ColorControl")
+    for _, name in ["ClientChoice", "AllClients", "ClassChoice", "Loot", "AttackEnabled", "IdleEnabled", "RecoveryEnabled", "Launcher"] {
+        GuiControlGet, hwnd, Hwnd, %name%
+        bg := (name = "RecoveryEnabled" || name = "Launcher") ? "10141D" : "1B2332"
+        color := BGR(bg)
+        brush := DllCall("CreateSolidBrush", "UInt", color, "Ptr")
+        controlBrushes[hwnd] := {brush: brush, color: color}
+        if (name = "ClientChoice" || name = "ClassChoice" || name = "Launcher")
+            DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "WStr", "DarkMode_CFD", "Ptr", 0)
+        else
+            DllCall("uxtheme\SetWindowTheme", "Ptr", hwnd, "WStr", "", "WStr", "")
+        ; Color the list popup as well as the closed combo box.
+        size := A_PtrSize = 8 ? 64 : 52
+        VarSetCapacity(info, size, 0)
+        NumPut(size, info, 0, "UInt")
+        if (DllCall("GetComboBoxInfo", "Ptr", hwnd, "Ptr", &info)) {
+            list := NumGet(info, A_PtrSize = 8 ? 56 : 48, "Ptr")
+            controlBrushes[list] := {brush: brush, color: color}
+            DllCall("uxtheme\SetWindowTheme", "Ptr", list, "WStr", "DarkMode_Explorer", "Ptr", 0)
+        }
+    }
+}
+
+ColorControl(dc, hwnd) {
+    global controlBrushes
+    if (!controlBrushes.HasKey(hwnd))
+        return
+    entry := controlBrushes[hwnd]
+    DllCall("SetTextColor", "Ptr", dc, "UInt", BGR("E7EDF7"))
+    DllCall("SetBkColor", "Ptr", dc, "UInt", entry.color)
+    return entry.brush
+}
+
+ReleaseKeys() {
+    delay := A_KeyDelay
+    duration := A_KeyDuration
+    ; Cleanup must not wait once per key/client before the UI can stop.
+    SetKeyDelay, -1, -1
+    SendTargets("{m up}{o up}{e up}{1 up}{2 up}{z up}{Space up}{Esc up}")
+    SetKeyDelay, %delay%, %duration%
+}
+
+; Native dialogs can reset the default button type when focus changes.
+; Repair only changed styles, then let Windows repaint after this timer returns.
+EnsureButtonStyles() {
+    global buttons
+    for hwnd, button in buttons {
+        style := DllCall("GetWindowLong", "Ptr", hwnd, "Int", -16, "UInt")
+        if ((style & 15) != 11) {
+            DllCall("SetWindowLong", "Ptr", hwnd, "Int", -16, "UInt", (style & ~15) | 11)
+            DllCall("InvalidateRect", "Ptr", hwnd, "Ptr", 0, "Int", true)
+        }
+    }
+}
