@@ -106,8 +106,27 @@ Sleep, 500
 FileGetSize, laterSize, %logPath%
 if (stoppedSize != laterSize)
     Fail("Anti-AFK continued after stop")
+; Closing a running dashboard must release keys too.
+Control, Check,, Attack rotation, Ship Destroyer
+Control, Uncheck,, Anti-AFK movement, Ship Destroyer
+FileDelete, %logPath%
+ControlClick, Start session, Ship Destroyer,,,, NA
+AssertText("Running /")
+Sleep, 200
+WinClose, Ship Destroyer
+WinWaitClose, Ship Destroyer,, 3
+if (ErrorLevel)
+    Fail("Dashboard did not close")
+Sleep, 100
+FileRead, keys, %logPath%
+if (!InStr(keys, "DOWN 77") || !InStr(keys, "UP 77"))
+    Fail("Closing the dashboard did not release attack")
 Process, Close, %fakePID%
 Process, Close, %secondPID%
+Run, "%A_AhkPath%" /ErrorStdOut "%app%",,, appPID
+WinWait, Ship Destroyer,, 10
+if (ErrorLevel)
+    Fail("Dashboard did not reopen")
 Control, Uncheck,, Use all detected clients (up to 8), Ship Destroyer
 Control, Check,, Attack rotation, Ship Destroyer
 Control, Uncheck,, Anti-AFK movement, Ship Destroyer

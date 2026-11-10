@@ -18,7 +18,22 @@ try {
     if (Test-Path $ready) {
         Add-Type -AssemblyName System.Drawing
         Add-Type -AssemblyName System.Windows.Forms
-        $bounds = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+        Add-Type @'
+using System;
+using System.Runtime.InteropServices;
+public static class WindowCapture {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Rect { public int Left, Top, Right, Bottom; }
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr hwnd, out Rect rect);
+}
+'@
+        $dashboard = Get-Process -Id ([int](Get-Content $ready))
+        $rect = New-Object WindowCapture+Rect
+        if (![WindowCapture]::GetWindowRect($dashboard.MainWindowHandle, [ref]$rect)) {
+            throw 'Cannot locate the dashboard for screenshot capture'
+        }
+        $bounds = New-Object System.Drawing.Rectangle $rect.Left, $rect.Top, ($rect.Right - $rect.Left), ($rect.Bottom - $rect.Top)
         $image = New-Object System.Drawing.Bitmap $bounds.Width, $bounds.Height
         $graphics = [System.Drawing.Graphics]::FromImage($image)
         try {
