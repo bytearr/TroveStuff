@@ -75,8 +75,15 @@ for _, name in ["Boomeranger", "Dracolyte", "Ice Sage", "Lunar Lancer"] {
         FileDelete, %logPath%
         FileDelete, %logPath2%
         ControlClick, Start session, Ship Destroyer,,,, NA
-        Sleep, 200
+        duration := (name = "Boomeranger" || name = "Lunar Lancer") ? 6100 : (name = "Dracolyte" ? 1200 : 650)
+        Sleep, %duration%
         AssertText("Running / " name " / 2 client(s)")
+        FileRead, cycleFirst, %logPath%
+        FileRead, cycleSecond, %logPath2%
+        skill := name = "Ice Sage" ? 49 : 50
+        if (!InStr(cycleFirst, "DOWN " skill) || !InStr(cycleFirst, "UP " skill)
+            || !InStr(cycleSecond, "DOWN " skill) || !InStr(cycleSecond, "UP " skill))
+            Fail("Full rotation did not finish its skill on both clients: " name)
         ControlClick, Stop / F8, Ship Destroyer,,,, NA
         AssertText("Stopped. All held keys released.")
         Sleep, 100

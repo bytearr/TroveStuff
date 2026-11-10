@@ -293,8 +293,7 @@ SetStatus(message) {
 
 RecoverClient() {
     global targets, recovering, nextRecovery, attempts, Launcher, step, idleStep, nextAttack, nextIdle
-    if (A_TickCount < nextRecovery)
-        return
+    ; Notice a returned client immediately; only launcher attempts are throttled.
     found := FindClients()
     if (found.Length() = 1) {
         targets := found
@@ -312,6 +311,8 @@ RecoverClient() {
         StopAll("Multiple clients found. Select the correct account manually.")
         return
     }
+    if (A_TickCount < nextRecovery)
+        return
     if (attempts >= 3) {
         StopAll("Recovery timed out. Check the launcher and refresh clients.")
         return

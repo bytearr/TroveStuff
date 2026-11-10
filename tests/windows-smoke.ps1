@@ -11,7 +11,7 @@ $ready = Join-Path $PSScriptRoot 'dashboard-ready.txt'
 Remove-Item $ready -ErrorAction SilentlyContinue
 $process = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/dashboard_smoke.ahk`"") -RedirectStandardOutput "$PSScriptRoot/stdout.log" -RedirectStandardError "$PSScriptRoot/stderr.log" -PassThru
 try {
-    $deadline = (Get-Date).AddSeconds(60)
+    $deadline = (Get-Date).AddSeconds(120)
     while (!(Test-Path $ready) -and !$process.HasExited -and (Get-Date) -lt $deadline) {
         Start-Sleep -Milliseconds 100
     }
@@ -58,4 +58,14 @@ try {
     Get-Content "$PSScriptRoot/mouse-stdout.log", "$PSScriptRoot/mouse-stderr.log" -ErrorAction SilentlyContinue
     if (!$mouse.HasExited) { $mouse.Kill() }
     Get-Process Trove -ErrorAction SilentlyContinue | Stop-Process -Force
+}
+
+$recovery = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/recovery_and_eight_clients.ahk`"") -RedirectStandardOutput "$PSScriptRoot/recovery-stdout.log" -RedirectStandardError "$PSScriptRoot/recovery-stderr.log" -PassThru
+try {
+    if (!$recovery.WaitForExit(60000)) { throw 'Eight-client/recovery tests timed out' }
+    if ($recovery.ExitCode -ne 0) { throw 'Eight-client/recovery tests failed' }
+} finally {
+    Get-Content "$PSScriptRoot/recovery-stdout.log", "$PSScriptRoot/recovery-stderr.log" -ErrorAction SilentlyContinue
+    if (!$recovery.HasExited) { $recovery.Kill() }
+    Get-Process Trove, GlyphClient -ErrorAction SilentlyContinue | Stop-Process -Force
 }
