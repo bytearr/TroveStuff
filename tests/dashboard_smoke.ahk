@@ -10,6 +10,7 @@ app := root "\ShipDestroyer1.1\ShipDestroyer.ahk"
 logPath := A_ScriptDir "\keys.log"
 FileDelete, %logPath%
 FileDelete, %A_ScriptDir%\test-results.log
+FileDelete, %A_ScriptDir%\dashboard-captured.txt
 FileCopy, %A_AhkPath%, %A_ScriptDir%\Trove.exe, 1
 Run, "%A_ScriptDir%\Trove.exe" /ErrorStdOut "%A_ScriptDir%\fake-client.ahk" "%logPath%",,, fakePID
 WinWait, Trove fixture,, 10
@@ -141,7 +142,9 @@ for _, caption in ["Refresh clients", "Start session", "Stop / F8"] {
 FileAppend, Dashboard smoke tests passed.`n, *
 ; Tell the parent where the window is, then allow it to capture the real UI.
 FileAppend, %appPID%, %A_ScriptDir%\dashboard-ready.txt
-Sleep, 5000
+deadline := A_TickCount + 25000
+while (!FileExist(A_ScriptDir "\dashboard-captured.txt") && A_TickCount < deadline)
+    Sleep, 100
 ExitApp, 0
 
 AssertText(expected) {

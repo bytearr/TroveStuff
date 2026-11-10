@@ -3,4 +3,5 @@ __pycache__/
 tests/Trove.exe
 tests/*.log
 tests/dashboard-ready.txt
+tests/dashboard-captured.txt
 dashboard-windows.png

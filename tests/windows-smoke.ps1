@@ -40,6 +40,7 @@ public static class WindowCapture {
             $graphics.CopyFromScreen($bounds.Location, [System.Drawing.Point]::Empty, $bounds.Size)
             $image.Save((Join-Path $root 'dashboard-windows.png'))
         } finally { $graphics.Dispose(); $image.Dispose() }
+        Set-Content (Join-Path $PSScriptRoot "dashboard-captured.txt") "done"
     }
     if (!$process.WaitForExit(10000)) { throw 'Dashboard smoke test timed out' }
     if ($process.ExitCode -ne 0) { throw 'Dashboard smoke tests failed' }
