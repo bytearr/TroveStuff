@@ -26,8 +26,11 @@ its window. Closing the dashboard also releases keys. Settings lock during a
 session; stop before changing them. Multi-client mode uses the first eight clients
 shown by refresh, all with the same class/options.
 
-The former `AntiCrash tr0ve.ahk` and `Ship Destroyer1.0/AFK Script.ahk` are compatibility
-launchers for this dashboard. The old 1.0 entertainment links are retired; its
+`AntiCrash tr0ve.ahk` opens **AntiCrash Trove**, a dedicated recovery-only mode
+with its own title, instructions and Start monitoring action. It sends no attack
+or Anti-AFK input. Select a running client before starting monitoring.
+`Ship Destroyer1.0/AFK Script.ahk` opens the full Ship Destroyer dashboard.
+Both modes share one engine; opening one replaces the other session. The old 1.0 entertainment links are retired; its
 credits are retained. Old DLLs/styles/screenshots are historical assets only.
 
 ### Recovery

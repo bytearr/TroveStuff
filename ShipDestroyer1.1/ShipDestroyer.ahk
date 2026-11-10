@@ -7,6 +7,8 @@ SetControlDelay, -1
 SetKeyDelay, 10, 20
 #Include %A_ScriptDir%\..\lib\Profiles.ahk
 
+RecoveryOnly := A_Args.Length() && A_Args[1] = "--recovery"
+WindowTitle := RecoveryOnly ? "AntiCrash Trove" : "Ship Destroyer"
 running := false
 recovering := false
 clients := []
@@ -27,27 +29,27 @@ Gui, Color, 10141D, 1B2332
 Gui, Margin, 0, 0
 Gui, Font, s10 cE7EDF7, Segoe UI
 ; Sidebar
-Gui, Add, Progress, x0 y0 w190 h646 Background151B27 c151B27, 100
+Gui, Add, Progress, x0 y0 w190 h646 hwndSidebar Disabled Background151B27 c151B27, 100
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x24 y30 w145 h20 BackgroundTrans, TROVE / TOOLKIT
 Gui, Font, s19 Bold cF3F6FC, Segoe UI
-Gui, Add, Text, x24 y65 w150 h64 BackgroundTrans, Ship`nDestroyer
+Gui, Add, Text, x24 y65 w150 h64 vBrand BackgroundTrans, Ship`nDestroyer
 Gui, Font, s10 Norm c9BAAC0, Segoe UI
-Gui, Add, Text, x24 y154 w142 h48 BackgroundTrans, Session control`nfor your accounts.
-Gui, Add, Progress, x24 y226 w142 h1 Background303C50, 0
+Gui, Add, Text, x24 y154 w142 h48 vSidebarDescription BackgroundTrans, Session control`nfor your accounts.
+Gui, Add, Progress, x24 y226 w142 h1 hwndDivider Disabled Background303C50, 0
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x24 y254 w140 h20 BackgroundTrans, BEFORE YOU START
 Gui, Font, s10 Norm cB8C4D6, Segoe UI
-Gui, Add, Text, x24 y288 w142 h108 BackgroundTrans, Bind attack to M`nSecondary to O`nLoot to E`nSkills to 1 and 2
+Gui, Add, Text, x24 y288 w142 h108 vSetupInstructions BackgroundTrans, Bind attack to M`nSecondary to O`nLoot to E`nSkills to 1 and 2
 Gui, Font, s9 c8392A9, Segoe UI
 Gui, Add, Text, x24 y534 w144 h76 BackgroundTrans, F8  Stop everything`nInsert  Show / hide`n`nMars / Vash / Yumo
 ; Main heading
 Gui, Font, s23 Bold cF3F6FC, Segoe UI
-Gui, Add, Text, x220 y26 w500 h40, Your session, in control.
+Gui, Add, Text, x220 y26 w500 h40 vHeading, Your session, in control.
 Gui, Font, s10 Norm c9BAAC0, Segoe UI
-Gui, Add, Text, x222 y76 w504 h24, Select your clients. Choose a profile. Start when ready.
+Gui, Add, Text, x222 y76 w504 h24 vSubtitle, Select your clients. Choose a profile. Start when ready.
 ; Connection card
-Gui, Add, Progress, x220 y116 w520 h150 Background1B2332 c1B2332, 100
+Gui, Add, Progress, x220 y116 w520 h150 hwndConnectionPanel Disabled Background1B2332 c1B2332, 100
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
 Gui, Add, Text, x240 y133 w300 h20 BackgroundTrans, 01 / CONNECTED CLIENTS
 Gui, Font, s10 Norm cE7EDF7, Segoe UI
@@ -55,11 +57,11 @@ Gui, Add, DropDownList, x240 y167 w350 vClientChoice, No Trove clients found
 AddButton("Refresh clients", "RefreshClients", 602, 165, 118, 30)
 Gui, Add, Checkbox, x240 y217 w460 h24 vAllClients gSelectionChanged BackgroundTrans, Use all detected clients (up to 8)
 ; Profile card
-Gui, Add, Progress, x220 y282 w520 h184 Background1B2332 c1B2332, 100
+Gui, Add, Progress, x220 y282 w520 h184 hwndProfilePanel Disabled Background1B2332 c1B2332, 100
 Gui, Font, s9 Bold c7DD3C7, Segoe UI
-Gui, Add, Text, x240 y299 w450 h20 BackgroundTrans, 02 / SESSION PROFILE
+Gui, Add, Text, x240 y299 w450 h20 vProfileHeading BackgroundTrans, 02 / SESSION PROFILE
 Gui, Font, s10 Norm cE7EDF7, Segoe UI
-Gui, Add, Text, x240 y334 w200 h22 BackgroundTrans, Character class
+Gui, Add, Text, x240 y334 w200 h22 vClassLabel BackgroundTrans, Character class
 Gui, Add, DropDownList, x240 y362 w220 vClassChoice Choose1, Boomeranger|Dracolyte|Ice Sage|Lunar Lancer
 Gui, Add, Checkbox, x488 y361 w222 h24 vLoot Checked BackgroundTrans, Collect loot
 Gui, Add, Checkbox, x240 y414 w220 h24 vAttackEnabled Checked BackgroundTrans, Attack rotation
@@ -70,12 +72,34 @@ Gui, Add, Checkbox, x222 y484 w305 h24 vRecoveryEnabled gSelectionChanged, Recov
 Gui, Add, DropDownList, x544 y482 w194 vLauncher Choose1, Glyph|Steam
 Gui, Font, s9 c8392A9, Segoe UI
 Gui, Add, Text, x222 y516 w510 h20, Glyph recovery needs the launcher open on the Trove page.
-AddButton("Start session", "StartSession", 220, 551, 250, 42, "7DD3C7", "10141D")
+StartButton := AddButton("Start session", "StartSession", 220, 551, 250, 42, "7DD3C7", "10141D")
 AddButton("Stop / F8", "StopSession", 488, 551, 252, 42, "303C50", "F3F6FC")
 Gui, Font, s10 c7DD3C7, Segoe UI
 Gui, Add, Text, x222 y610 w516 h24 vStatus, Ready. Refresh clients to connect.
+if (RecoveryOnly) {
+    GuiControl,, Brand, AntiCrash`nTrove
+    GuiControl,, SidebarDescription, Crash recovery`nfor one account.
+    GuiControl,, SetupInstructions, Open Trove first.`nSelect your client.`nChoose its launcher.`nStart monitoring.
+    GuiControl,, Heading, Keep your client online.
+    GuiControl,, Subtitle, Monitor one client and restart it if it disconnects.
+    GuiControl,, ProfileHeading, 02 / CRASH RECOVERY
+    GuiControl,, ClassLabel, Restart using
+    for _, name in ["AllClients", "ClassChoice", "Loot", "AttackEnabled", "IdleEnabled", "RecoveryEnabled"]
+        GuiControl, Hide, %name%
+    GuiControl,, AttackEnabled, 0
+    GuiControl,, IdleEnabled, 0
+    GuiControl,, RecoveryEnabled, 1
+    GuiControl, Move, Launcher, x240 y362 w220
+    Gui, Font, s10 cB8C4D6, Segoe UI
+    Gui, Add, Text, x240 y404 w460 h48 BackgroundTrans, Up to 3 restart attempts, one minute apart.`nNo attack or Anti-AFK inputs are sent.
+    GuiControl,, %StartButton%, Start monitoring
+    buttons[StartButton].text := "Start monitoring"
+}
+; Decorative native controls must never sit in front of interactive siblings.
+for _, panel in [Sidebar, Divider, ConnectionPanel, ProfilePanel]
+    DllCall("SetWindowPos", "Ptr", panel, "Ptr", 1, "Int", 0, "Int", 0, "Int", 0, "Int", 0, "UInt", 0x13)
 ApplyTheme()
-Gui, Show, w770 h646, Ship Destroyer
+Gui, Show, w770 h646, %WindowTitle%
 Gosub, RefreshClients
 SetTimer, Tick, 25
 return
@@ -144,7 +168,7 @@ attempts := 0
 recovering := false
 running := true
 LockSettings(true)
-SetStatus("Running / " ClassChoice " / " targets.Length() " client(s)")
+SetStatus(RecoveryOnly ? "Monitoring / single client / " Launcher : "Running / " ClassChoice " / " targets.Length() " client(s)")
 return
 
 StopSession:
@@ -327,6 +351,7 @@ AddButton(text, label, x, y, w, h, bg := "303C50", fg := "E7EDF7") {
     style := DllCall("GetWindowLong", "Ptr", handle, "Int", -16, "UInt")
     DllCall("SetWindowLong", "Ptr", handle, "Int", -16, "UInt", (style & ~15) | 11)
     Gui, Font, s10 Norm cE7EDF7, Segoe UI
+    return handle
 }
 
 ; Owner-drawn native buttons retain keyboard focus and accessibility labels.
@@ -398,6 +423,9 @@ ColorControl(dc, hwnd) {
 }
 
 ReleaseKeys() {
+    global RecoveryOnly
+    if (RecoveryOnly)
+        return
     delay := A_KeyDelay
     duration := A_KeyDuration
     ; Cleanup must not wait once per key/client before the UI can stop.

@@ -49,3 +49,13 @@ public static class WindowCapture {
     if (!$process.HasExited) { $process.Kill() }
     Get-Process Trove -ErrorAction SilentlyContinue | Stop-Process -Force
 }
+
+$mouse = Start-Process $ahk -ArgumentList @('/ErrorStdOut', "`"$PSScriptRoot/mouse_input.ahk`"") -RedirectStandardOutput "$PSScriptRoot/mouse-stdout.log" -RedirectStandardError "$PSScriptRoot/mouse-stderr.log" -PassThru
+try {
+    if (!$mouse.WaitForExit(45000)) { throw 'Physical mouse tests timed out' }
+    if ($mouse.ExitCode -ne 0) { throw 'Physical mouse tests failed' }
+} finally {
+    Get-Content "$PSScriptRoot/mouse-stdout.log", "$PSScriptRoot/mouse-stderr.log" -ErrorAction SilentlyContinue
+    if (!$mouse.HasExited) { $mouse.Kill() }
+    Get-Process Trove -ErrorAction SilentlyContinue | Stop-Process -Force
+}
